@@ -12,14 +12,18 @@ use winit_input_helper::WinitInputHelper;
 
 const WIDTH: u32 = 320;
 const HEIGHT: u32 = 240;
-const BOX_SIZE: i16 = 64;
 
 /// Representation of the application state. In this example, a box will bounce around the screen.
-struct World {
-    box_x: i16,
-    box_y: i16,
+///
+
+struct SnowFlake {
+    x: i16,
+    y: i16,
     velocity_x: i16,
     velocity_y: i16,
+}
+struct World {
+    flake: SnowFlake,
 }
 
 fn main() -> Result<(), Error> {
@@ -85,28 +89,36 @@ fn log_error<E: std::error::Error + 'static>(method_name: &str, err: E) {
     }
 }
 
+impl SnowFlake {
+    fn new() -> Self {
+        Self {
+            x: 1,
+            y: 1,
+            velocity_x: 0,
+            velocity_y: 1,
+        }
+    }
+}
+
 impl World {
     /// Create a new `World` instance that can draw a moving box.
     fn new() -> Self {
         Self {
-            box_x: 24,
-            box_y: 16,
-            velocity_x: 1,
-            velocity_y: 1,
+            flake: SnowFlake::new(),
         }
     }
 
     /// Update the `World` internal state; bounce the box around the screen.
     fn update(&mut self) {
-        if self.box_x <= 0 || self.box_x + BOX_SIZE > WIDTH as i16 {
-            self.velocity_x *= -1;
+        if self.flake.x <= 0 || self.flake.x >= WIDTH as i16 {
+            self.flake.velocity_x *= -1;
         }
-        if self.box_y <= 0 || self.box_y + BOX_SIZE > HEIGHT as i16 {
-            self.velocity_y *= -1;
+        if self.flake.y <= 0 || self.flake.y >= HEIGHT as i16 {
+            self.flake.velocity_y *= -1;
         }
 
-        self.box_x += self.velocity_x;
-        self.box_y += self.velocity_y;
+        self.flake.x += self.flake.velocity_x;
+        self.flake.y += self.flake.velocity_y;
     }
 
     /// Draw the `World` state to the frame buffer.
@@ -117,15 +129,10 @@ impl World {
             let x = (i % WIDTH as usize) as i16;
             let y = (i / WIDTH as usize) as i16;
 
-            let inside_the_box = x >= self.box_x
-                && x < self.box_x + BOX_SIZE
-                && y >= self.box_y
-                && y < self.box_y + BOX_SIZE;
-
-            let rgba = if inside_the_box {
-                [0x5e, 0x48, 0xe8, 0xff]
+            let rgba = if x == self.flake.x && y == self.flake.y {
+                [0xff, 0xff, 0xff, 0xff]
             } else {
-                [0x48, 0xb2, 0xe8, 0xff]
+                [0x8, 0x15, 0x45, 0xff]
             };
 
             pixel.copy_from_slice(&rgba);
