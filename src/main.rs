@@ -137,5 +137,7 @@ impl World {
 
             pixel.copy_from_slice(&rgba);
         }
+
+        frame[6] = 0xff;
     }
 }
