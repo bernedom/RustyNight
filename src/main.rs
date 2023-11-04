@@ -26,6 +26,20 @@ struct World {
     flakes: Vec<SnowFlake>,
 }
 
+fn lerp_rgba_u8(
+    start: (u8, u8, u8, u8),
+    end: (u8, u8, u8, u8),
+    index: u8,
+    height: u8,
+) -> (u8, u8, u8, u8) {
+    let t = f64::from(index) / f64::from(height);
+    let r = ((1.0 - t) * f64::from(start.0) + t * f64::from(end.0)) as u8;
+    let g = ((1.0 - t) * f64::from(start.1) + t * f64::from(end.1)) as u8;
+    let b = ((1.0 - t) * f64::from(start.2) + t * f64::from(end.2)) as u8;
+    let a = ((1.0 - t) * f64::from(start.3) + t * f64::from(end.3)) as u8;
+    (r, g, b, a)
+}
+
 fn main() -> Result<(), Error> {
     env_logger::init();
     let event_loop = EventLoop::new();
@@ -50,7 +64,8 @@ fn main() -> Result<(), Error> {
     event_loop.run(move |event, _, control_flow| {
         // Draw the current frame
         if let Event::RedrawRequested(_) = event {
-            world.draw(pixels.frame_mut());
+            world.draw_background(pixels.frame_mut());
+            world.draw_flakes(pixels.frame_mut());
             if let Err(err) = pixels.render() {
                 log_error("pixels.render", err);
                 *control_flow = ControlFlow::Exit;
@@ -122,25 +137,29 @@ impl World {
     /// Draw the `World` state to the frame buffer.
     ///
     /// Assumes the default texture format: `wgpu::TextureFormat::Rgba8UnormSrgb`
-    fn draw(&self, frame: &mut [u8]) {
-        for (i, pixel) in frame.chunks_exact_mut(4).enumerate() {
-            let x = (i % WIDTH as usize) as i16;
-            let y = (i / WIDTH as usize) as i16;
+    fn draw_background(&self, frame: &mut [u8]) {
+        let top_color = (0x8, 0x15, 0x45, 0xff);
+        let bottom_color = (0x0, 0x0, 0x0, 0xff);
 
-            let mut is_flake = false;
-            for flake in self.flakes.iter() {
-                if x == flake.x && y == flake.y {
-                    is_flake = true;
-                    break;
-                }
-            }
-            let rgba = if is_flake {
-                [0xff, 0xff, 0xff, 0xff]
-            } else {
-                [0x8, 0x15, 0x45, 0xff]
-            };
+        for (i, pixel) in frame.chunks_exact_mut(4).enumerate() {
+            let y = (i / WIDTH as usize) as u8;
+
+            let interpolated = lerp_rgba_u8(top_color, bottom_color, y, HEIGHT as u8);
+            let rgba: [u8; 4] = interpolated.into();
 
             pixel.copy_from_slice(&rgba);
+        }
+    }
+
+    fn draw_flakes(&self, frame: &mut [u8]) {
+        for flake in self.flakes.iter() {
+            let x = flake.x as usize;
+            let y = flake.y as usize;
+            let rgba = [0xff, 0xff, 0xff, 0xff];
+            let i = (x + y * WIDTH as usize) * 4;
+            if i + 4 < frame.len() {
+                frame[i..(i + 4)].copy_from_slice(&rgba);
+            }
         }
     }
 }
