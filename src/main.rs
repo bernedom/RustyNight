@@ -96,7 +96,7 @@ impl World {
         for position in 0..(WIDTH as i16) / 10 {
             flakes.push(SnowFlake {
                 x: position * 10,
-                y: 0,
+                y: 1,
                 velocity_x: 0,
                 velocity_y: 1,
             });
@@ -107,12 +107,12 @@ impl World {
     /// Update the `World` internal state; bounce the box around the screen.
     fn update(&mut self) {
         for flake in self.flakes.iter_mut() {
-            // if flake.x <= 0 || flake.x >= WIDTH as i16 {
-            //     flake.velocity_x *= -1;
-            // }
-            // if flake.y <= 0 || flake.y >= HEIGHT as i16 {
-            //     flake.velocity_y *= -1;
-            // }
+            if flake.x <= 0 || flake.x >= WIDTH as i16 {
+                flake.velocity_x *= -1;
+            }
+            if flake.y >= HEIGHT as i16 {
+                flake.y = 0;
+            }
 
             flake.x += flake.velocity_x;
             flake.y += flake.velocity_y;
