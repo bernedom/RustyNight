@@ -23,7 +23,7 @@ struct SnowFlake {
     velocity_y: i16,
 }
 struct World {
-    flake: SnowFlake,
+    flakes: Vec<SnowFlake>,
 }
 
 fn main() -> Result<(), Error> {
@@ -89,36 +89,34 @@ fn log_error<E: std::error::Error + 'static>(method_name: &str, err: E) {
     }
 }
 
-impl SnowFlake {
-    fn new() -> Self {
-        Self {
-            x: 1,
-            y: 1,
-            velocity_x: 0,
-            velocity_y: 1,
-        }
-    }
-}
-
 impl World {
     /// Create a new `World` instance that can draw a moving box.
-    fn new() -> Self {
-        Self {
-            flake: SnowFlake::new(),
+    fn new() -> World {
+        let mut flakes = Vec::new();
+        for position in 0..(WIDTH as i16) / 10 {
+            flakes.push(SnowFlake {
+                x: position * 10,
+                y: 0,
+                velocity_x: 0,
+                velocity_y: 1,
+            });
         }
+        World { flakes }
     }
 
     /// Update the `World` internal state; bounce the box around the screen.
     fn update(&mut self) {
-        if self.flake.x <= 0 || self.flake.x >= WIDTH as i16 {
-            self.flake.velocity_x *= -1;
-        }
-        if self.flake.y <= 0 || self.flake.y >= HEIGHT as i16 {
-            self.flake.velocity_y *= -1;
-        }
+        for flake in self.flakes.iter_mut() {
+            // if flake.x <= 0 || flake.x >= WIDTH as i16 {
+            //     flake.velocity_x *= -1;
+            // }
+            // if flake.y <= 0 || flake.y >= HEIGHT as i16 {
+            //     flake.velocity_y *= -1;
+            // }
 
-        self.flake.x += self.flake.velocity_x;
-        self.flake.y += self.flake.velocity_y;
+            flake.x += flake.velocity_x;
+            flake.y += flake.velocity_y;
+        }
     }
 
     /// Draw the `World` state to the frame buffer.
@@ -129,7 +127,14 @@ impl World {
             let x = (i % WIDTH as usize) as i16;
             let y = (i / WIDTH as usize) as i16;
 
-            let rgba = if x == self.flake.x && y == self.flake.y {
+            let mut is_flake = false;
+            for flake in self.flakes.iter() {
+                if x == flake.x && y == flake.y {
+                    is_flake = true;
+                    break;
+                }
+            }
+            let rgba = if is_flake {
                 [0xff, 0xff, 0xff, 0xff]
             } else {
                 [0x8, 0x15, 0x45, 0xff]
@@ -137,7 +142,5 @@ impl World {
 
             pixel.copy_from_slice(&rgba);
         }
-
-        frame[6] = 0xff;
     }
 }
