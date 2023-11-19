@@ -4,6 +4,7 @@
 use error_iter::ErrorIter as _;
 use log::error;
 use pixels::{Error, Pixels, SurfaceTexture};
+use rand::Rng;
 use winit::dpi::LogicalSize;
 use winit::event::{Event, VirtualKeyCode};
 use winit::event_loop::{ControlFlow, EventLoop};
@@ -24,6 +25,7 @@ struct SnowFlake {
 }
 struct World {
     flakes: Vec<SnowFlake>,
+    rng: rand::rngs::ThreadRng,
 }
 
 fn lerp_rgba_u8(
@@ -47,7 +49,7 @@ fn main() -> Result<(), Error> {
     let window = {
         let size = LogicalSize::new(WIDTH as f64, HEIGHT as f64);
         WindowBuilder::new()
-            .with_title("Hello Pixels")
+            .with_title("Rusty Night")
             .with_inner_size(size)
             .with_min_inner_size(size)
             .build(&event_loop)
@@ -105,7 +107,7 @@ fn log_error<E: std::error::Error + 'static>(method_name: &str, err: E) {
 }
 
 impl World {
-    /// Create a new `World` instance that can draw a moving box.
+    /// Create a new `World` instance that can draw snowflakes.
     fn new() -> World {
         let mut flakes = Vec::new();
         for position in 0..(WIDTH as i16) / 10 {
@@ -116,15 +118,18 @@ impl World {
                 velocity_y: 1,
             });
         }
-        World { flakes }
+        World {
+            flakes,
+            rng: rand::thread_rng(),
+        }
     }
 
-    /// Update the `World` internal state; bounce the box around the screen.
+    /// Update the `World` internal state; Let the flakes fall.
     fn update(&mut self) {
         for flake in self.flakes.iter_mut() {
-            if flake.x <= 0 || flake.x >= WIDTH as i16 {
-                flake.velocity_x *= -1;
-            }
+            flake.velocity_x = self.rng.gen_range(-1..=1);
+
+            // Flake reached the bottom, restart at the top
             if flake.y >= HEIGHT as i16 {
                 flake.y = 0;
             }
@@ -153,6 +158,9 @@ impl World {
 
     fn draw_flakes(&self, frame: &mut [u8]) {
         for flake in self.flakes.iter() {
+            if flake.x < 0 || flake.x >= WIDTH as i16 {
+                continue;
+            }
             let x = flake.x as usize;
             let y = flake.y as usize;
             let rgba = [0xff, 0xff, 0xff, 0xff];
