@@ -14,9 +14,13 @@ use winit_input_helper::WinitInputHelper;
 const WIDTH: u32 = 320;
 const HEIGHT: u32 = 240;
 
-/// Representation of the application state. In this example, a box will bounce around the screen.
 ///
-
+/// Todo
+/// Add more flakes
+/// limit FPS
+/// Add background image and twinkling windows
+/// add ground
+///
 struct SnowFlake {
     x: i16,
     y: i16,
@@ -129,13 +133,21 @@ impl World {
         for flake in self.flakes.iter_mut() {
             flake.velocity_x = self.rng.gen_range(-1..=1);
 
-            // Flake reached the bottom, restart at the top
-            if flake.y >= HEIGHT as i16 {
-                flake.y = 0;
-            }
-
             flake.x += flake.velocity_x;
             flake.y += flake.velocity_y;
+        }
+
+        // remove all flakes that reached the bottom
+        self.flakes.retain(|flake| flake.y < HEIGHT as i16);
+
+        let num_new_flakes = self.rng.gen_range(1..WIDTH as i16 / 20); // spawn a random number of flakes
+        for _ in 0..num_new_flakes {
+            self.flakes.push(SnowFlake {
+                x: self.rng.gen_range(0..WIDTH as i16),
+                y: 1,
+                velocity_x: 0,
+                velocity_y: 1,
+            });
         }
     }
 
