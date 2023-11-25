@@ -113,19 +113,17 @@ fn log_error<E: std::error::Error + 'static>(method_name: &str, err: E) {
 impl World {
     /// Create a new `World` instance that can draw snowflakes.
     fn new() -> World {
+        let mut rng = rand::thread_rng();
         let mut flakes = Vec::new();
         for position in 0..(WIDTH as i16) / 10 {
             flakes.push(SnowFlake {
                 x: position * 10,
                 y: 1,
                 velocity_x: 0,
-                velocity_y: 1,
+                velocity_y: rng.gen_range(1..=2),
             });
         }
-        World {
-            flakes,
-            rng: rand::thread_rng(),
-        }
+        World { flakes, rng: rng }
     }
 
     /// Update the `World` internal state; Let the flakes fall.
@@ -146,7 +144,7 @@ impl World {
                 x: self.rng.gen_range(0..WIDTH as i16),
                 y: 1,
                 velocity_x: 0,
-                velocity_y: 1,
+                velocity_y: self.rng.gen_range(1..=2),
             });
         }
     }
