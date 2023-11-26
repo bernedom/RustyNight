@@ -13,6 +13,7 @@ use winit_input_helper::WinitInputHelper;
 
 const WIDTH: u32 = 320;
 const HEIGHT: u32 = 240;
+const MAX_FLAKES_PER_SPAWN: u32 = WIDTH / 20;
 
 ///
 /// Todo
@@ -30,6 +31,7 @@ struct SnowFlake {
 struct World {
     flakes: Vec<SnowFlake>,
     rng: rand::rngs::ThreadRng,
+    current_max_flakes: u32,
 }
 
 fn lerp_rgba_u8(
@@ -123,7 +125,11 @@ impl World {
                 velocity_y: rng.gen_range(1..=2),
             });
         }
-        World { flakes, rng: rng }
+        World {
+            flakes,
+            rng: rng,
+            current_max_flakes: 0,
+        }
     }
 
     /// Update the `World` internal state; Let the flakes fall.
@@ -138,14 +144,20 @@ impl World {
         // remove all flakes that reached the bottom
         self.flakes.retain(|flake| flake.y < HEIGHT as i16);
 
-        let num_new_flakes = self.rng.gen_range(1..WIDTH as i16 / 20); // spawn a random number of flakes
-        for _ in 0..num_new_flakes {
-            self.flakes.push(SnowFlake {
-                x: self.rng.gen_range(0..WIDTH as i16),
-                y: 1,
-                velocity_x: 0,
-                velocity_y: self.rng.gen_range(1..=2),
-            });
+        if self.current_max_flakes > 1 {
+            let num_new_flakes = self.rng.gen_range(1..self.current_max_flakes); // spawn a random number of flakes
+            for _ in 0..num_new_flakes {
+                self.flakes.push(SnowFlake {
+                    x: self.rng.gen_range(0..WIDTH as i16),
+                    y: 1,
+                    velocity_x: 0,
+                    velocity_y: self.rng.gen_range(1..=2),
+                });
+            }
+        }
+        if self.current_max_flakes < MAX_FLAKES_PER_SPAWN {
+            println!("current_max_flakes: {}", self.current_max_flakes);
+            self.current_max_flakes += 1;
         }
     }
 
