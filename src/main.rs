@@ -5,6 +5,7 @@ use error_iter::ErrorIter as _;
 use log::error;
 use pixels::{Error, Pixels, SurfaceTexture};
 use rand::Rng;
+use std::time::{Duration, Instant};
 use winit::dpi::LogicalSize;
 use winit::event::{Event, VirtualKeyCode};
 use winit::event_loop::{ControlFlow, EventLoop};
@@ -14,6 +15,7 @@ use winit_input_helper::WinitInputHelper;
 const WIDTH: u32 = 320;
 const HEIGHT: u32 = 240;
 const MAX_FLAKES_PER_SPAWN: u32 = WIDTH / 20;
+const TARGET_FPS: f64 = 60.0;
 
 ///
 /// Todo
@@ -68,6 +70,8 @@ fn main() -> Result<(), Error> {
         Pixels::new(WIDTH, HEIGHT, surface_texture)?
     };
     let mut world = World::new();
+    let target_fps_duration = Duration::from_secs_f64(1.0 / TARGET_FPS);
+    let mut last_frame = Instant::now();
 
     event_loop.run(move |event, _, control_flow| {
         // Draw the current frame
@@ -99,8 +103,14 @@ fn main() -> Result<(), Error> {
             }
 
             // Update internal state and request a redraw
-            world.update();
-            window.request_redraw();
+
+            let now = Instant::now();
+            let elapsed = now - last_frame;
+            if elapsed >= target_fps_duration {
+                last_frame = now;
+                world.update();
+                window.request_redraw();
+            }
         }
     });
 }
