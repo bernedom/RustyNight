@@ -34,6 +34,7 @@ struct World {
     flakes: Vec<SnowFlake>,
     rng: rand::rngs::ThreadRng,
     current_max_flakes: u32,
+    tick: u32,
 }
 
 fn lerp_rgba_u8(
@@ -125,25 +126,17 @@ fn log_error<E: std::error::Error + 'static>(method_name: &str, err: E) {
 impl World {
     /// Create a new `World` instance that can draw snowflakes.
     fn new() -> World {
-        let mut rng = rand::thread_rng();
-        let mut flakes = Vec::new();
-        for position in 0..(WIDTH as i16) / 10 {
-            flakes.push(SnowFlake {
-                x: position * 10,
-                y: 1,
-                velocity_x: 0,
-                velocity_y: rng.gen_range(1..=2),
-            });
-        }
         World {
-            flakes,
-            rng: rng,
+            flakes: Vec::new(),
+            rng: rand::thread_rng(),
             current_max_flakes: 0,
+            tick: 0,
         }
     }
 
     /// Update the `World` internal state; Let the flakes fall.
     fn update(&mut self) {
+        self.tick += 1;
         for flake in self.flakes.iter_mut() {
             flake.velocity_x = self.rng.gen_range(-1..=1);
 
@@ -156,6 +149,7 @@ impl World {
 
         if self.current_max_flakes > 1 {
             let num_new_flakes = self.rng.gen_range(1..self.current_max_flakes); // spawn a random number of flakes
+            println!("num_new_flakes: {}", num_new_flakes);
             for _ in 0..num_new_flakes {
                 self.flakes.push(SnowFlake {
                     x: self.rng.gen_range(0..WIDTH as i16),
@@ -165,7 +159,8 @@ impl World {
                 });
             }
         }
-        if self.current_max_flakes < MAX_FLAKES_PER_SPAWN {
+
+        if self.current_max_flakes < MAX_FLAKES_PER_SPAWN && self.tick % TARGET_FPS as u32 == 0 {
             println!("current_max_flakes: {}", self.current_max_flakes);
             self.current_max_flakes += 1;
         }
