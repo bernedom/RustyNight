@@ -3,11 +3,6 @@
 
 use rand::Rng;
 
-const WIDTH: u32 = 320;
-const HEIGHT: u32 = 240;
-const MAX_FLAKES_PER_SPAWN: u32 = WIDTH / 20;
-const TARGET_FPS: f64 = 60.0;
-
 fn lerp_rgba_u8(
     start: (u8, u8, u8, u8),
     end: (u8, u8, u8, u8),
@@ -31,18 +26,22 @@ struct SnowFlake {
 pub struct World {
     flakes: Vec<SnowFlake>,
     rng: rand::rngs::ThreadRng,
-    current_max_flakes: u32,
+    pub current_max_flakes: u32,
     tick: u32,
+    width: u32,
+    height: u32,
 }
 
 impl World {
     /// Create a new `World` instance that can draw snowflakes.
-    pub fn new() -> World {
+    pub fn new(width: u32, height: u32) -> World {
         World {
             flakes: Vec::new(),
             rng: rand::thread_rng(),
             current_max_flakes: 0,
             tick: 0,
+            width,
+            height,
         }
     }
 
@@ -57,24 +56,18 @@ impl World {
         }
 
         // remove all flakes that reached the bottom
-        self.flakes.retain(|flake| flake.y < HEIGHT as i16);
+        self.flakes.retain(|flake| flake.y < self.height as i16);
 
         if self.current_max_flakes > 1 {
             let num_new_flakes = self.rng.gen_range(1..self.current_max_flakes); // spawn a random number of flakes
-            println!("num_new_flakes: {}", num_new_flakes);
             for _ in 0..num_new_flakes {
                 self.flakes.push(SnowFlake {
-                    x: self.rng.gen_range(0..WIDTH as i16),
+                    x: self.rng.gen_range(0..self.width as i16),
                     y: 1,
                     velocity_x: 0,
                     velocity_y: self.rng.gen_range(1..=2),
                 });
             }
-        }
-
-        if self.current_max_flakes < MAX_FLAKES_PER_SPAWN && self.tick % TARGET_FPS as u32 == 0 {
-            println!("current_max_flakes: {}", self.current_max_flakes);
-            self.current_max_flakes += 1;
         }
     }
 
@@ -86,9 +79,9 @@ impl World {
         let bottom_color = (0x0, 0x0, 0x0, 0xff);
 
         for (i, pixel) in frame.chunks_exact_mut(4).enumerate() {
-            let y = (i / WIDTH as usize) as u8;
+            let y = (i / self.width as usize) as u8;
 
-            let interpolated = lerp_rgba_u8(top_color, bottom_color, y, HEIGHT as u8);
+            let interpolated = lerp_rgba_u8(top_color, bottom_color, y, self.height as u8);
             let rgba: [u8; 4] = interpolated.into();
 
             pixel.copy_from_slice(&rgba);
@@ -97,13 +90,13 @@ impl World {
 
     pub fn draw_flakes(&self, frame: &mut [u8]) {
         for flake in self.flakes.iter() {
-            if flake.x < 0 || flake.x >= WIDTH as i16 {
+            if flake.x < 0 || flake.x >= self.width as i16 {
                 continue;
             }
             let x = flake.x as usize;
             let y = flake.y as usize;
             let rgba = [0xff, 0xff, 0xff, 0xff];
-            let i = (x + y * WIDTH as usize) * 4;
+            let i = (x + y * self.width as usize) * 4;
             if i + 4 < frame.len() {
                 frame[i..(i + 4)].copy_from_slice(&rgba);
             }

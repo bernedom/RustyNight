@@ -18,6 +18,7 @@ use winit_input_helper::WinitInputHelper;
 const WIDTH: u32 = 320;
 const HEIGHT: u32 = 240;
 const TARGET_FPS: f64 = 60.0;
+const MAX_FLAKES_PER_SPAWN: u32 = WIDTH / 20;
 
 ///
 /// Todo
@@ -46,9 +47,10 @@ fn main() -> Result<(), Error> {
         let surface_texture = SurfaceTexture::new(window_size.width, window_size.height, &window);
         Pixels::new(WIDTH, HEIGHT, surface_texture)?
     };
-    let mut world = World::new();
+    let mut world = World::new(WIDTH, HEIGHT);
     let target_fps_duration = Duration::from_secs_f64(1.0 / TARGET_FPS);
     let mut last_frame = Instant::now();
+    let wall_clock = Instant::now();
 
     event_loop.run(move |event, _, control_flow| {
         // Draw the current frame
@@ -87,6 +89,10 @@ fn main() -> Result<(), Error> {
                 last_frame = now;
                 world.update();
                 window.request_redraw();
+            }
+            let wall_elapsed = now - wall_clock;
+            if world.current_max_flakes < MAX_FLAKES_PER_SPAWN {
+                world.current_max_flakes += wall_elapsed.as_secs() as u32;
             }
         }
     });
