@@ -26,7 +26,8 @@ struct SnowFlake {
 pub struct World {
     flakes: Vec<SnowFlake>,
     rng: rand::rngs::ThreadRng,
-    pub current_max_flakes: u32,
+    pub max_spawned_flakes: u32,
+    pub max_flakes_total: usize,
     tick: u32,
     width: u32,
     height: u32,
@@ -38,10 +39,11 @@ impl World {
         World {
             flakes: Vec::new(),
             rng: rand::thread_rng(),
-            current_max_flakes: 0,
+            max_spawned_flakes: 0,
             tick: 0,
             width,
             height,
+            max_flakes_total: 0,
         }
     }
 
@@ -58,15 +60,17 @@ impl World {
         // remove all flakes that reached the bottom
         self.flakes.retain(|flake| flake.y < self.height as i16);
 
-        if self.current_max_flakes > 1 {
-            let num_new_flakes = self.rng.gen_range(1..self.current_max_flakes); // spawn a random number of flakes
+        if self.max_spawned_flakes > 1 {
+            let num_new_flakes = self.rng.gen_range(1..self.max_spawned_flakes); // spawn a random number of flakes
             for _ in 0..num_new_flakes {
-                self.flakes.push(SnowFlake {
-                    x: self.rng.gen_range(0..self.width as i16),
-                    y: 1,
-                    velocity_x: 0,
-                    velocity_y: self.rng.gen_range(1..=2),
-                });
+                if self.flakes.len() < self.max_flakes_total {
+                    self.flakes.push(SnowFlake {
+                        x: self.rng.gen_range(0..self.width as i16),
+                        y: 1,
+                        velocity_x: 0,
+                        velocity_y: self.rng.gen_range(1..=2),
+                    });
+                }
             }
         }
     }

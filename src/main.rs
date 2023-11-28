@@ -51,6 +51,7 @@ fn main() -> Result<(), Error> {
     let target_fps_duration = Duration::from_secs_f64(1.0 / TARGET_FPS);
     let mut last_frame = Instant::now();
     let wall_clock = Instant::now();
+    let mut last_spawn = Instant::now();
 
     event_loop.run(move |event, _, control_flow| {
         // Draw the current frame
@@ -91,8 +92,17 @@ fn main() -> Result<(), Error> {
                 window.request_redraw();
             }
             let wall_elapsed = now - wall_clock;
-            if world.current_max_flakes < MAX_FLAKES_PER_SPAWN {
-                world.current_max_flakes += wall_elapsed.as_secs() as u32;
+            if now - last_spawn >= Duration::from_secs(1) as Duration
+                && world.max_spawned_flakes < MAX_FLAKES_PER_SPAWN
+            {
+                world.max_spawned_flakes = wall_elapsed.as_secs() as u32;
+                if wall_elapsed.as_secs() < 10 {
+                    world.max_flakes_total += wall_elapsed.as_secs() as usize;
+                } else if world.max_flakes_total < 10000 {
+                    world.max_flakes_total *= 2;
+                }
+
+                last_spawn = now;
             }
         }
     });
