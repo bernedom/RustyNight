@@ -92,11 +92,17 @@ fn main() -> Result<(), Error> {
                 window.request_redraw();
             }
             let wall_elapsed = now - wall_clock;
-            if now - last_spawn >= Duration::from_secs(1) as Duration
+
+            let spawn_interval = if world.max_spawned_flakes == 0 {
+                Duration::from_millis(2000)
+            } else {
+                Duration::from_millis(2000 / world.max_spawned_flakes as u64)
+            };
+            if now - last_spawn >= spawn_interval as Duration
                 && world.max_spawned_flakes < MAX_FLAKES_PER_SPAWN
             {
                 world.max_spawned_flakes = wall_elapsed.as_secs() as u32;
-                if wall_elapsed.as_secs() < 10 {
+                if wall_elapsed.as_secs() < 3 {
                     world.max_flakes_total += wall_elapsed.as_secs() as usize;
                 } else if world.max_flakes_total < 10000 {
                     world.max_flakes_total *= 2;
