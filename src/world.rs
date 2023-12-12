@@ -23,8 +23,15 @@ struct SnowFlake {
     velocity_x: i16,
     velocity_y: i16,
 }
+
+struct House {
+    x: u32,
+    width: u32,
+    height: u32,
+}
 pub struct World {
     flakes: Vec<SnowFlake>,
+    houses: Vec<House>,
     rng: rand::rngs::ThreadRng,
     pub max_spawned_flakes: u32,
     pub max_flakes_total: usize,
@@ -36,8 +43,29 @@ pub struct World {
 impl World {
     /// Create a new `World` instance that can draw snowflakes.
     pub fn new(width: u32, height: u32) -> World {
+        let mut houses = Vec::new();
+        let current_x = 10;
+        houses.push(House {
+            x: current_x,
+            width: 10,
+            height: 10,
+        });
+
+        // while current_x < width as i16 {
+        //     let house_width = 10;
+        //     let house_height = 10;
+        //     houses.push(House {
+        //         x: current_x,
+        //         y: height as i16 - house_height,
+        //         width: house_width,
+        //         height: house_height,
+        //     });
+        //     current_x += house_width + 10;
+        // }
+
         World {
             flakes: Vec::new(),
+            houses,
             rng: rand::thread_rng(),
             max_spawned_flakes: 0,
             tick: 0,
@@ -79,8 +107,8 @@ impl World {
     ///
     /// Assumes the default texture format: `wgpu::TextureFormat::Rgba8UnormSrgb`
     pub fn draw_background(&self, frame: &mut [u8]) {
-        let top_color = (0x8, 0x15, 0x45, 0xff);
-        let bottom_color = (0x0, 0x0, 0x0, 0xff);
+        let top_color = (0x0, 0x0, 0x0, 0xff);
+        let bottom_color = (0x8, 0x15, 0x45, 0xff);
 
         for (i, pixel) in frame.chunks_exact_mut(4).enumerate() {
             let y = (i / self.width as usize) as u8;
@@ -89,6 +117,23 @@ impl World {
             let rgba: [u8; 4] = interpolated.into();
 
             pixel.copy_from_slice(&rgba);
+        }
+    }
+
+    pub fn draw_village(&self, frame: &mut [u8]) {
+        let village_color = (0xff, 0x00, 0x00, 0xff);
+
+        for house in self.houses.iter() {
+            let rgba: [u8; 4] = village_color.into();
+            for x in house.x..(house.x + house.width) {
+                for y in 1..house.height {
+                    println!("x: {}, y: {}", x, y);
+                    let i = (x + (self.height - y) * self.width) as usize * 4;
+                    if i + 4 < frame.len() {
+                        frame[i..(i + 4)].copy_from_slice(&rgba);
+                    }
+                }
+            }
         }
     }
 

@@ -57,6 +57,7 @@ fn main() -> Result<(), Error> {
         // Draw the current frame
         if let Event::RedrawRequested(_) = event {
             world.draw_background(pixels.frame_mut());
+            world.draw_village(pixels.frame_mut());
             world.draw_flakes(pixels.frame_mut());
             if let Err(err) = pixels.render() {
                 log_error("pixels.render", err);
