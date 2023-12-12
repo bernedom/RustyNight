@@ -44,29 +44,28 @@ impl World {
     /// Create a new `World` instance that can draw snowflakes.
     pub fn new(width: u32, height: u32) -> World {
         let mut houses = Vec::new();
-        let current_x = 10;
-        houses.push(House {
-            x: current_x,
-            width: 10,
-            height: 10,
-        });
+        let mut rng = rand::thread_rng();
+        let mut current_x: u32 = 0;
+        let max_padding = 5;
+        let max_width = 30;
 
-        // while current_x < width as i16 {
-        //     let house_width = 10;
-        //     let house_height = 10;
-        //     houses.push(House {
-        //         x: current_x,
-        //         y: height as i16 - house_height,
-        //         width: house_width,
-        //         height: house_height,
-        //     });
-        //     current_x += house_width + 10;
-        // }
+        while current_x < width {
+            let house_width = rng.gen_range(10..max_width);
+            let house_height = rng.gen_range(10..max_width);
+            let padding = rng.gen_range(0..max_padding);
+            current_x += padding;
+            houses.push(House {
+                x: current_x,
+                width: house_width,
+                height: house_height,
+            });
+            current_x += house_width + 10;
+        }
 
         World {
             flakes: Vec::new(),
             houses,
-            rng: rand::thread_rng(),
+            rng,
             max_spawned_flakes: 0,
             tick: 0,
             width,
