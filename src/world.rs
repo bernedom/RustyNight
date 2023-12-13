@@ -46,20 +46,20 @@ impl World {
         let mut houses = Vec::new();
         let mut rng = rand::thread_rng();
         let mut current_x: u32 = 0;
-        let max_padding = 5;
-        let max_width = 30;
+        let max_padding = 4;
+        let max_width = 40;
+        let max_height = max_width - 10;
 
         while current_x < width {
             let house_width = rng.gen_range(10..max_width);
-            let house_height = rng.gen_range(10..max_width);
+            let house_height = rng.gen_range(10..max_height);
             let padding = rng.gen_range(0..max_padding);
-            current_x += padding;
             houses.push(House {
                 x: current_x,
                 width: house_width,
                 height: house_height,
             });
-            current_x += house_width + 10;
+            current_x += house_width + padding;
         }
 
         World {
@@ -120,34 +120,32 @@ impl World {
     }
 
     pub fn draw_village(&self, frame: &mut [u8]) {
-        let village_color = (0x00, 0x00, 0x00, 0xff);
-
+        let rgba: [u8; 4] = (0x00, 0x00, 0x00, 0xff).into();
+        
         for house in self.houses.iter() {
-            let rgba: [u8; 4] = village_color.into();
+            
+            // draw box
             for x in house.x..(house.x + house.width) {
-                // draw box
+                
                 for y in 1..house.height {
                     let i = (x + (self.height - y) * self.width) as usize * 4;
                     if i + 4 < frame.len() {
                         frame[i..(i + 4)].copy_from_slice(&rgba);
                     }
                 }
-                // draw roof
-                let root_offset = self.height - house.height;
-                let mut current_roof_with = house.width;
-                for y in 0..house.width {
-                    if y * 2 < current_roof_with {
-                        current_roof_with -= 2;
+            }
+
+            // draw roof at an 45 degree angle
+            for y in 0..house.width / 2 {
+                let roof_width = house.width - y;
+
+                for x in y..roof_width {
+                    let i = (house.x + x + (self.height - y - house.height) * self.width) as usize * 4;
+                    if i + 4 < frame.len() {
+                        frame[i..(i + 4)].copy_from_slice(&rgba);
                     }
-                    for roof_x in 0..current_roof_with {
-                        let i = (roof_x + (root_offset + y) * self.width) as usize * 4;
-                        if i + 4 < frame.len() {
-                            frame[i..(i + 4)].copy_from_slice(&rgba);
-                        }
-                    }
-                    
                 }
-                
+
             }
         }
     }
