@@ -120,18 +120,34 @@ impl World {
     }
 
     pub fn draw_village(&self, frame: &mut [u8]) {
-        let village_color = (0xff, 0x00, 0x00, 0xff);
+        let village_color = (0x00, 0x00, 0x00, 0xff);
 
         for house in self.houses.iter() {
             let rgba: [u8; 4] = village_color.into();
             for x in house.x..(house.x + house.width) {
+                // draw box
                 for y in 1..house.height {
-                    println!("x: {}, y: {}", x, y);
                     let i = (x + (self.height - y) * self.width) as usize * 4;
                     if i + 4 < frame.len() {
                         frame[i..(i + 4)].copy_from_slice(&rgba);
                     }
                 }
+                // draw roof
+                let root_offset = self.height - house.height;
+                let mut current_roof_with = house.width;
+                for y in 0..house.width {
+                    if y * 2 < current_roof_with {
+                        current_roof_with -= 2;
+                    }
+                    for roof_x in 0..current_roof_with {
+                        let i = (roof_x + (root_offset + y) * self.width) as usize * 4;
+                        if i + 4 < frame.len() {
+                            frame[i..(i + 4)].copy_from_slice(&rgba);
+                        }
+                    }
+                    
+                }
+                
             }
         }
     }
