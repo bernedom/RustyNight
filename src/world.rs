@@ -114,7 +114,7 @@ impl World {
 
     pub fn draw_village(&self, frame: &mut [u8]) {
         for house in self.houses.iter() {
-            house.draw(frame);
+            house.draw(frame, self.height, self.width);
         }
     }
 
