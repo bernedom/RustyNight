@@ -1,6 +1,8 @@
 #![deny(clippy::all)]
 #![forbid(unsafe_code)]
 
+pub mod house;
+use house::House;
 use rand::Rng;
 
 fn lerp_rgba_u8(
@@ -24,11 +26,6 @@ struct SnowFlake {
     velocity_y: i16,
 }
 
-struct House {
-    x: u32,
-    width: u32,
-    height: u32,
-}
 pub struct World {
     flakes: Vec<SnowFlake>,
     houses: Vec<House>,
@@ -54,11 +51,7 @@ impl World {
             let house_width = rng.gen_range(10..max_width);
             let house_height = rng.gen_range(10..max_height);
             let padding = rng.gen_range(0..max_padding);
-            houses.push(House {
-                x: current_x,
-                width: house_width,
-                height: house_height,
-            });
+            houses.push(House::new(current_x, house_width, house_height));
             current_x += house_width + padding;
         }
 
@@ -120,33 +113,8 @@ impl World {
     }
 
     pub fn draw_village(&self, frame: &mut [u8]) {
-        let rgba: [u8; 4] = (0x00, 0x00, 0x00, 0xff).into();
-        
         for house in self.houses.iter() {
-            
-            // draw box
-            for x in house.x..(house.x + house.width) {
-                
-                for y in 1..house.height {
-                    let i = (x + (self.height - y) * self.width) as usize * 4;
-                    if i + 4 < frame.len() {
-                        frame[i..(i + 4)].copy_from_slice(&rgba);
-                    }
-                }
-            }
-
-            // draw roof at an 45 degree angle
-            for y in 0..house.width / 2 {
-                let roof_width = house.width - y;
-
-                for x in y..roof_width {
-                    let i = (house.x + x + (self.height - y - house.height) * self.width) as usize * 4;
-                    if i + 4 < frame.len() {
-                        frame[i..(i + 4)].copy_from_slice(&rgba);
-                    }
-                }
-
-            }
+            house.draw(frame);
         }
     }
 
