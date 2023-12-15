@@ -36,12 +36,21 @@ impl House {
         let mut windows = Vec::new();
         let mut rng = rand::thread_rng();
         let num_windows = rng.gen_range(1..4);
+        let padding = rng.gen_range(2..4);
+        let window_width = 5;
+        let window_height = 5;
+        let lower_floor_y = rng.gen_range(1..(height / 2) - padding);
+        let upper_floor_y = rng.gen_range((height / 2)..(height - 1) - padding);
 
-        for _ in 0..num_windows {
-            let window_width = 5;
-            let window_height = 5;
-            let window_x = rng.gen_range(1..(width - window_width));
-            let window_y = rng.gen_range(1..(height - window_height));
+        for i in 0..num_windows {
+            let window_y = if i % 2 == 0 {
+                lower_floor_y
+            } else {
+                upper_floor_y
+            };
+
+            let window_x = padding + padding * (i / 2) + window_width * (i / 2);
+
             windows.push(Window {
                 x: window_x,
                 y: window_y,
