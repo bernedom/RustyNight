@@ -22,7 +22,8 @@ impl Window {
         if !self.is_lit {
             return;
         }
-        let rgba: [u8; 4] = (0xff, 0xff, 0x00, 0xff).into();
+        
+        let rgba: [u8; 4] = (0xf5, 0xce, 0x42, 0xff).into();
         // draw box
         for x in self.x..(self.x + self.width) {
             for y in self.y..(self.y + self.height) {
@@ -40,15 +41,13 @@ impl House {
         let mut windows = Vec::new();
         let mut rng = rand::thread_rng();
 
-        let padding = rng.gen_range(2..5);
+        let padding = rng.gen_range(3..5);
         let window_width = 5;
         let window_height = 5;
 
         
         let num_windows_x = width / (window_width + padding);
         let num_windows_y = height / (window_height + padding);
-
-        let num_windows = num_windows_x * num_windows_y;
                 
         let lower_window_bound = height / num_windows_y / 2 - padding / 2;
         let left_window_bound = width / num_windows_x / 2 - padding / 2;
@@ -63,7 +62,7 @@ impl House {
                     y: window_y,
                     width: window_width,
                     height: window_height,
-                    is_lit: true,
+                    is_lit: rng.gen(),
                 });
             }
         }
