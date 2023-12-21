@@ -35,21 +35,27 @@ impl House {
     pub fn new(x: u32, width: u32, height: u32) -> House {
         let mut windows = Vec::new();
         let mut rng = rand::thread_rng();
-        let num_windows = rng.gen_range(1..4);
+        
+        let num_windows_x = if width / 10 > 1 {rng.gen_range(1..=width / 10)} else {1};
+        let num_windows_y = if height / 10 > 1 { rng.gen_range(1..=height / 10) } else { 1 };
+        let num_windows = num_windows_x * num_windows_y;
+        println!("num_windows_x: {}, num_windows_y: {}, num_windows: {}", num_windows_x, num_windows_y, num_windows);
+        
         let padding = rng.gen_range(2..4);
         let window_width = 5;
         let window_height = 5;
-        let lower_floor_y = rng.gen_range(1..(height / 2) - padding);
-        let upper_floor_y = rng.gen_range((height / 2)..(height - 1) - padding);
 
+        let lower_window_bound = rng.gen_range(1..(height / num_windows_y) - padding);
+        
+        let left_window_bound = padding;
+        let right_window_bound = width - padding  - window_width;
+        let padding_x = (right_window_bound - left_window_bound) / num_windows_x;
+        
         for i in 0..num_windows {
-            let window_y = if i % 2 == 0 {
-                lower_floor_y
-            } else {
-                upper_floor_y
-            };
-
-            let window_x = padding + padding * (i / 2) + window_width * (i / 2);
+            
+            let window_y = lower_window_bound + i / num_windows_y * (padding + window_height);
+            let window_x = left_window_bound + padding_x * (i % num_windows_x) + window_width * (i % num_windows_x);
+            println!("window_x: {}, window_y: {}", window_x, window_y);
 
             windows.push(Window {
                 x: window_x,
