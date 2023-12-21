@@ -1,7 +1,7 @@
 #![deny(clippy::all)]
 #![forbid(unsafe_code)]
 
-use rand::Rng;
+use rand::{Rng, seq::SliceRandom, thread_rng};
 
 struct Window {
     x: u32,
@@ -9,6 +9,7 @@ struct Window {
     width: u32,
     height: u32,
     is_lit: bool,
+    lit_time: u32,
 }
 pub struct House {
     x: u32,
@@ -63,6 +64,7 @@ impl House {
                     width: window_width,
                     height: window_height,
                     is_lit: rng.gen(),
+                    lit_time: rng.gen_range( 0..10),
                 });
             }
         }
@@ -103,5 +105,28 @@ impl House {
         for window in &self.windows {
             window.draw(frame, screen_height, screen_width, self.x);
         }
+    }
+
+    pub fn update(&mut self) {
+        for window in &mut self.windows {
+            if window.is_lit {
+                window.lit_time += 1;
+            }
+        }
+
+        match self.windows.choose_mut(&mut rand::thread_rng()){
+            Some(window_to_light) => {
+                if window_to_light.is_lit && window_to_light.lit_time > thread_rng().gen_range(7..10){
+                    window_to_light.is_lit = false;
+                    window_to_light.lit_time = 0;
+                }
+                else {
+                    window_to_light.is_lit = true;
+                }
+                window_to_light
+            },
+            None => return,
+        };
+        
     }
 }
