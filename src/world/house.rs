@@ -8,6 +8,7 @@ struct Window {
     y: u32,
     width: u32,
     height: u32,
+    is_lit: bool,
 }
 pub struct House {
     x: u32,
@@ -18,6 +19,9 @@ pub struct House {
 
 impl Window {
     pub fn draw(&self, frame: &mut [u8], screen_height: u32, screen_width: u32, house_x: u32) {
+        if !self.is_lit {
+            return;
+        }
         let rgba: [u8; 4] = (0xff, 0xff, 0x00, 0xff).into();
         // draw box
         for x in self.x..(self.x + self.width) {
@@ -35,35 +39,35 @@ impl House {
     pub fn new(x: u32, width: u32, height: u32) -> House {
         let mut windows = Vec::new();
         let mut rng = rand::thread_rng();
-        
-        let num_windows_x = if width / 10 > 1 {rng.gen_range(1..=width / 10)} else {1};
-        let num_windows_y = if height / 10 > 1 { rng.gen_range(1..=height / 10) } else { 1 };
-        let num_windows = num_windows_x * num_windows_y;
-        println!("num_windows_x: {}, num_windows_y: {}, num_windows: {}", num_windows_x, num_windows_y, num_windows);
-        
-        let padding = rng.gen_range(2..4);
+
+        let padding = rng.gen_range(2..5);
         let window_width = 5;
         let window_height = 5;
 
-        let lower_window_bound = rng.gen_range(1..(height / num_windows_y) - padding);
         
-        let left_window_bound = padding;
-        let right_window_bound = width - padding  - window_width;
-        let padding_x = (right_window_bound - left_window_bound) / num_windows_x;
-        
-        for i in 0..num_windows {
-            
-            let window_y = lower_window_bound + i / num_windows_y * (padding + window_height);
-            let window_x = left_window_bound + padding_x * (i % num_windows_x) + window_width * (i % num_windows_x);
-            println!("window_x: {}, window_y: {}", window_x, window_y);
+        let num_windows_x = width / (window_width + padding);
+        let num_windows_y = height / (window_height + padding);
 
-            windows.push(Window {
-                x: window_x,
-                y: window_y,
-                width: window_width,
-                height: window_height,
-            });
+        let num_windows = num_windows_x * num_windows_y;
+                
+        let lower_window_bound = height / num_windows_y / 2 - padding / 2;
+        let left_window_bound = width / num_windows_x / 2 - padding / 2;
+        
+
+        for x in 0 ..num_windows_x{
+            let window_x = left_window_bound + padding * x + window_width * x;
+            for y in 0..num_windows_y {
+                let window_y = lower_window_bound + y * (padding + window_height);
+                windows.push(Window {
+                    x: window_x,
+                    y: window_y,
+                    width: window_width,
+                    height: window_height,
+                    is_lit: true,
+                });
+            }
         }
+       
 
         House {
             x,
