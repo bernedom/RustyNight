@@ -5,6 +5,8 @@ use std::time::{Duration, Instant};
 
 use rand::{thread_rng, Rng};
 
+use super::lerp_rgba_u8;
+
 struct Window {
     x: u32,
     y: u32,
@@ -27,12 +29,23 @@ impl Window {
             return;
         }
 
-        let rgba: [u8; 4] = (0xf5, 0xce, 0x42, 0xff).into();
+        let rgba_lower: [u8; 4] = (0xf5, 0xce, 0x42, 0xff).into();
+        let rgba_upper: [u8; 4] = (0xf5, 0xa4, 0x42, 0xff).into();
         // draw box
         for x in self.x..(self.x + self.width) {
             for y in self.y..(self.y + self.height) {
                 let i = (house_x + x + (screen_height - y) * screen_width) as usize * 4;
                 if i + 4 < frame.len() {
+                    let time_that_window_is_lit = Instant::now() - self.lit_time;
+
+                    let rgba: [u8; 4] = lerp_rgba_u8(
+                        rgba_lower.into(),
+                        rgba_upper.into(),
+                        (time_that_window_is_lit.as_millis() % 200) as u8,
+                        200,
+                    )
+                    .into();
+
                     frame[i..(i + 4)].copy_from_slice(&rgba);
                 }
             }

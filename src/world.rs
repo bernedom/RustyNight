@@ -5,7 +5,7 @@ pub mod house;
 use house::House;
 use rand::Rng;
 
-fn lerp_rgba_u8(
+pub fn lerp_rgba_u8(
     start: (u8, u8, u8, u8),
     end: (u8, u8, u8, u8),
     index: u8,
