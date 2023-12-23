@@ -30,7 +30,7 @@ impl Window {
         }
 
         let rgba_lower: [u8; 4] = (0xf5, 0xce, 0x42, 0xff).into();
-        let rgba_upper: [u8; 4] = (0xf5, 0xa4, 0x42, 0xff).into();
+        let rgba_upper: [u8; 4] = (0xf5, 0xb0, 0x42, 0xff).into();
         // draw box
         for x in self.x..(self.x + self.width) {
             for y in self.y..(self.y + self.height) {
