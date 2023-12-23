@@ -50,8 +50,9 @@ fn main() -> Result<(), Error> {
     let mut world = World::new(WIDTH, HEIGHT);
     let target_fps_duration = Duration::from_secs_f64(1.0 / TARGET_FPS);
     let mut last_frame = Instant::now();
-    let wall_clock = Instant::now();
+    let mut wall_clock = Instant::now();
     let mut last_spawn = Instant::now();
+    let mut is_running = false;
 
     event_loop.run(move |event, _, control_flow| {
         // Draw the current frame
@@ -73,6 +74,11 @@ fn main() -> Result<(), Error> {
                 *control_flow = ControlFlow::Exit;
                 return;
             }
+            if input.key_pressed(VirtualKeyCode::Space) {
+                is_running = !is_running;
+
+                wall_clock = Instant::now();
+            }
 
             // Resize the window
             if let Some(size) = input.window_resized() {
@@ -85,31 +91,33 @@ fn main() -> Result<(), Error> {
 
             // Update internal state and request a redraw
 
-            let now = Instant::now();
-            let elapsed = now - last_frame;
-            if elapsed >= target_fps_duration {
-                last_frame = now;
-                world.update();
-                window.request_redraw();
-            }
-            let wall_elapsed = now - wall_clock;
-
-            let spawn_interval = if world.max_spawned_flakes == 0 {
-                Duration::from_millis(2000)
-            } else {
-                Duration::from_millis(2000 / world.max_spawned_flakes as u64)
-            };
-            if now - last_spawn >= spawn_interval as Duration
-                && world.max_spawned_flakes < MAX_FLAKES_PER_SPAWN
-            {
-                world.max_spawned_flakes = wall_elapsed.as_secs() as u32;
-                if wall_elapsed.as_secs() < 3 {
-                    world.max_flakes_total += wall_elapsed.as_secs() as usize;
-                } else if world.max_flakes_total < 10000 {
-                    world.max_flakes_total *= 2;
+            if is_running {
+                let now = Instant::now();
+                let elapsed = now - last_frame;
+                if elapsed >= target_fps_duration {
+                    last_frame = now;
+                    world.update();
+                    window.request_redraw();
                 }
+                let wall_elapsed = now - wall_clock;
 
-                last_spawn = now;
+                let spawn_interval = if world.max_spawned_flakes == 0 {
+                    Duration::from_millis(2000)
+                } else {
+                    Duration::from_millis(2000 / world.max_spawned_flakes as u64)
+                };
+                if now - last_spawn >= spawn_interval as Duration
+                    && world.max_spawned_flakes < MAX_FLAKES_PER_SPAWN
+                {
+                    world.max_spawned_flakes = wall_elapsed.as_secs() as u32;
+                    if wall_elapsed.as_secs() < 3 {
+                        world.max_flakes_total += wall_elapsed.as_secs() as usize;
+                    } else if world.max_flakes_total < 10000 {
+                        world.max_flakes_total *= 2;
+                    }
+
+                    last_spawn = now;
+                }
             }
         }
     });
