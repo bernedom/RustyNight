@@ -1,7 +1,9 @@
 #![deny(clippy::all)]
 #![forbid(unsafe_code)]
 
-use rand::{Rng, seq::SliceRandom, thread_rng};
+use std::time::{Duration, Instant};
+
+use rand::{thread_rng, Rng};
 
 struct Window {
     x: u32,
@@ -9,7 +11,8 @@ struct Window {
     width: u32,
     height: u32,
     is_lit: bool,
-    lit_time: u32,
+    lit_time: Instant,
+    time_on: Duration,
 }
 pub struct House {
     x: u32,
@@ -23,7 +26,7 @@ impl Window {
         if !self.is_lit {
             return;
         }
-        
+
         let rgba: [u8; 4] = (0xf5, 0xce, 0x42, 0xff).into();
         // draw box
         for x in self.x..(self.x + self.width) {
@@ -46,15 +49,13 @@ impl House {
         let window_width = 5;
         let window_height = 5;
 
-        
         let num_windows_x = width / (window_width + padding);
         let num_windows_y = height / (window_height + padding);
-                
+
         let lower_window_bound = height / num_windows_y / 2 - padding / 2;
         let left_window_bound = width / num_windows_x / 2 - padding / 2;
-        
 
-        for x in 0 ..num_windows_x{
+        for x in 0..num_windows_x {
             let window_x = left_window_bound + padding * x + window_width * x;
             for y in 0..num_windows_y {
                 let window_y = lower_window_bound + y * (padding + window_height);
@@ -64,11 +65,11 @@ impl House {
                     width: window_width,
                     height: window_height,
                     is_lit: rng.gen(),
-                    lit_time: rng.gen_range( 0..10),
+                    lit_time: Instant::now(),
+                    time_on: Duration::from_millis(rng.gen_range(5000..20000)),
                 });
             }
         }
-       
 
         House {
             x,
@@ -109,24 +110,11 @@ impl House {
 
     pub fn update(&mut self) {
         for window in &mut self.windows {
-            if window.is_lit {
-                window.lit_time += 1;
+            if Instant::now() - window.lit_time > window.time_on {
+                window.is_lit = !window.is_lit;
+                window.lit_time = Instant::now();
+                window.time_on = Duration::from_millis(thread_rng().gen_range(5000..20000));
             }
         }
-
-        match self.windows.choose_mut(&mut rand::thread_rng()){
-            Some(window_to_light) => {
-                if window_to_light.is_lit && window_to_light.lit_time > thread_rng().gen_range(7..10){
-                    window_to_light.is_lit = false;
-                    window_to_light.lit_time = 0;
-                }
-                else {
-                    window_to_light.is_lit = true;
-                }
-                window_to_light
-            },
-            None => return,
-        };
-        
     }
 }

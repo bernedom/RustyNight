@@ -94,10 +94,8 @@ impl World {
             }
         }
 
-        if self.tick % 100 == 0 {
-            for house in self.houses.iter_mut() {
-                house.update();
-            }
+        for house in self.houses.iter_mut() {
+            house.update();
         }
     }
 
