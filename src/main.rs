@@ -8,7 +8,12 @@ use error_iter::ErrorIter as _;
 use log::error;
 use pixels::{Pixels, SurfaceTexture};
 use std::rc::Rc;
+#[cfg(target_arch = "wasm32")]
+ use web_time::{Instant, Duration};
+
+#[cfg(not(target_arch = "wasm32"))]
 use std::time::{Duration, Instant};
+
 use winit::dpi::LogicalSize;
 use winit::event::{Event, VirtualKeyCode};
 use winit::event_loop::{ControlFlow, EventLoop};

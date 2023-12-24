@@ -1,6 +1,6 @@
 fn main() {
     let css = r#"body {
-        background-color: #000;
+        background-color: #fff;
         margin: 0;
         overflow: hidden;
     }"#;
