@@ -1,6 +1,10 @@
 # RustyNight
 A generated animation of a winter night using [rust](https://www.rust-lang.org/)
 
+[Try it out as webassembly here](http://rustynight.dominikberner.ch/)
+
+![screenshot](screenshot.png)
+
 # Building 
 
 ## Running natively
