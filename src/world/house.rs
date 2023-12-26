@@ -82,7 +82,7 @@ impl House {
                     width: window_width,
                     height: window_height,
                     is_lit: rng.gen(),
-                    lit_time: Instant::now() - Duration::from_millis(rng.gen_range(0..20000)),
+                    lit_time: Instant::now(),
                     time_on: Duration::from_millis(rng.gen_range(5000..20000)),
                 });
             }
