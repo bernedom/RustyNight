@@ -116,6 +116,13 @@ impl World {
         }
     }
 
+    pub fn draw_debug(&self, frame: &mut [u8]) {
+        let rgba: [u8; 4] = (0xff, 0xff, 0xff, 0xff).into();
+        for (i, pixel) in frame.chunks_exact_mut(4).enumerate() {
+            pixel.copy_from_slice(&rgba);
+        }
+    }
+
     pub fn draw_village(&self, frame: &mut [u8]) {
         for house in self.houses.iter() {
             house.draw(frame, self.height, self.width);

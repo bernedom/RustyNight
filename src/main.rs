@@ -114,11 +114,17 @@ async fn run() {
     let mut wall_clock = Instant::now();
     let mut last_spawn = Instant::now();
     let mut is_running = false;
+    let mut event_received = false;
 
     event_loop.run(move |event, _, control_flow| {
         // Draw the current frame
         if let Event::RedrawRequested(_) = event {
-            world.draw_background(pixels.frame_mut());
+            if !event_received {
+                world.draw_background(pixels.frame_mut());
+            } else {
+                world.draw_debug(pixels.frame_mut());
+            }
+
             world.draw_village(pixels.frame_mut());
             world.draw_flakes(pixels.frame_mut());
             if let Err(err) = pixels.render() {
@@ -153,6 +159,9 @@ async fn run() {
                 is_running = !is_running;
 
                 wall_clock = Instant::now();
+                event_received = true;
+            } else {
+                event_received = false;
             }
             // Resize the window
             if let Some(size) = input.window_resized() {
