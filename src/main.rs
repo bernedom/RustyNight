@@ -114,15 +114,14 @@ async fn run() {
     let mut wall_clock = Instant::now();
     let mut last_spawn = Instant::now();
     let mut is_running = false;
-    let mut event_received = false;
 
     event_loop.run(move |event, _, control_flow| {
         // Draw the current frame
         if let Event::RedrawRequested(_) = event {
-            if !event_received {
-                world.draw_background(pixels.frame_mut());
-            } else {
+            if !is_running {
                 world.draw_debug(pixels.frame_mut());
+            } else {
+                world.draw_background(pixels.frame_mut());
             }
 
             world.draw_village(pixels.frame_mut());
@@ -134,22 +133,22 @@ async fn run() {
             }
         }
 
-        let mut is_touch = false;
-
-        match event {
-            Event::WindowEvent {
-                event: winit::event::WindowEvent::Touch(touch),
-                ..
-            } => {
-                if touch.phase == winit::event::TouchPhase::Ended {
-                    is_touch = true;
-                }
-            }
-            _ => {}
-        }
-
         // Handle input events
         if input.update(&event) {
+            let mut is_touch = false;
+
+            match event {
+                Event::WindowEvent {
+                    event: winit::event::WindowEvent::Touch(touch),
+                    ..
+                } => {
+                    if touch.phase == winit::event::TouchPhase::Ended {
+                        is_touch = true;
+                    }
+                }
+                _ => {}
+            }
+
             // Close events
             if input.key_pressed(VirtualKeyCode::Escape) || input.close_requested() {
                 *control_flow = ControlFlow::Exit;
@@ -159,9 +158,6 @@ async fn run() {
                 is_running = !is_running;
 
                 wall_clock = Instant::now();
-                event_received = true;
-            } else {
-                event_received = false;
             }
             // Resize the window
             if let Some(size) = input.window_resized() {
