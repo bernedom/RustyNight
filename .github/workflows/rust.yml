@@ -1,10 +1,14 @@
 name: Rust
 
+
 on:
   push:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
+
+permissions:
+  contents: write
 
 env:
   CARGO_TERM_COLOR: always
@@ -16,6 +20,17 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    - name: Build
-      run: cargo build --verbose
+    - name: Add wasm32 target
+      run: rustup target add wasm32-unknown-unknown
 
+    - name: Build
+      run: cargo build --release
+
+    - name: Build wasm
+      run: cargo run-wasm --release --build-only --package rusty_night
+
+    - name: Deploy 🚀
+      uses: JamesIves/github-pages-deploy-action@v4
+      with:
+        folder: target/wasm-examples/rusty_night # The folder the action should deploy.
+        branch: ghpages # The branch the action should deploy to.
