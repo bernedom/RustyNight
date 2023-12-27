@@ -9,7 +9,7 @@ use log::error;
 use pixels::{Pixels, SurfaceTexture};
 use std::rc::Rc;
 #[cfg(target_arch = "wasm32")]
- use web_time::{Instant, Duration};
+use web_time::{Duration, Instant};
 
 #[cfg(not(target_arch = "wasm32"))]
 use std::time::{Duration, Instant};
@@ -135,12 +135,11 @@ async fn run() {
                 *control_flow = ControlFlow::Exit;
                 return;
             }
-            if input.key_pressed(VirtualKeyCode::Space) {
+            if input.key_pressed(VirtualKeyCode::Space) || input.mouse_released(0) {
                 is_running = !is_running;
 
                 wall_clock = Instant::now();
             }
-
             // Resize the window
             if let Some(size) = input.window_resized() {
                 if let Err(err) = pixels.resize_surface(size.width, size.height) {
