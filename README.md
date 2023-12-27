@@ -18,6 +18,16 @@ cargo run --release
 
 ### Running as web assembly
 
+In order to build for web assembly that target may have to be setup once:
+
+```bash
+rustup target add wasm32-unknown-unknown
+```
+
+Then the project can be built using [wasm-pack](
+```
+
+
 RustyNight can be compiled to web assembly using [cargo-run-wasm](https://github.com/rukai/cargo-run-wasm)
 
 ```bash
