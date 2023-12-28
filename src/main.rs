@@ -115,6 +115,11 @@ async fn run() {
     let mut last_spawn = Instant::now();
     let mut is_running = false;
 
+    #[cfg(target_arch = "wasm32")]
+    {
+        is_running = true;
+    }
+
     event_loop.run(move |event, _, control_flow| {
         // Draw the current frame
         if let Event::RedrawRequested(_) = event {
