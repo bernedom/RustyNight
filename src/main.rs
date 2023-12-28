@@ -133,28 +133,42 @@ async fn run() {
             }
         }
 
-        // Handle input events
-        if input.update(&event) {
-            let mut is_touch = false;
+        let mut is_touch = false;
 
-            match event {
-                Event::WindowEvent {
-                    event: winit::event::WindowEvent::Touch(touch),
-                    ..
-                } => {
-                    if touch.phase == winit::event::TouchPhase::Ended {
-                        is_touch = true;
-                    }
+        match event {
+            Event::WindowEvent {
+                event: winit::event::WindowEvent::Touch(touch),
+                ..
+            } => match touch.phase {
+                winit::event::TouchPhase::Started => {
+                    is_touch = true;
+                    println!("Touch started");
+                }
+                winit::event::TouchPhase::Moved => {
+                    println!("Touch moved");
+                }
+                winit::event::TouchPhase::Ended => {
+                    println!("Touch ended");
                 }
                 _ => {}
-            }
+            },
+            _ => {}
+        }
 
+        // Handle input events
+        if input.update(&event) {
             // Close events
             if input.key_pressed(VirtualKeyCode::Escape) || input.close_requested() {
                 *control_flow = ControlFlow::Exit;
                 return;
             }
-            if input.key_pressed(VirtualKeyCode::Space) || input.mouse_released(0) || is_touch {
+            if input.key_pressed(VirtualKeyCode::Space)
+                || input.mouse_released(0)
+                || input.mouse_released(1)
+                || input.mouse_released(2)
+                || input.mouse_released(3)
+                || is_touch
+            {
                 is_running = !is_running;
 
                 wall_clock = Instant::now();
